@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+div{ width:100px; height:100px; position:absolute; top:0; left:0; background:red; overflow:hidden; cursor:move; -webkit-user-select:none;}
+</style>
+</head>
+
+<body>
+<div id="div1"></div>
+<div id="div2" style="background:green; left:120px; "></div>
+<div id="div3" style="background:blue; left:240px; "></div>
+<div id="div4" style="background:purple; left:150px; top:110px; "><img src="img/6.png" width="100" height="100"></div>
+<div id="div5" style="background:pink; top:220px;"><img src="img/1.png" width="100" height="100"></div>
+</body>
+</html>
+<script src="event2.js"></script>
+<script>
+var oDivs=document.getElementsByTagName("div");
+for(var i=0;i<oDivs.length;i++){
+	on(oDivs.item(i),"mousedown",down);	
+	var ele=oDivs.item(i);
+	on(ele,"selfDragstart",clearEffect);
+	on(ele,"selfDragging",getSpeed);
+	on(ele,"selfDragend",drop);
+	on(ele,"selfDragend",fly);
+}
+//这个块元素中的一些有文本性质的行内元素会认为mousedown的时候，用户在做选择的操作，user-select操作
+function down(e){
+	this.x=this.offsetLeft;
+	this.y=this.offsetTop;
+	this.mx=e.pageX;
+	this.my=e.pageY;
+	
+	if(this.setCapture){
+		this.setCapture();
+		on(this,"mousemove",move);
+		on(this,"mouseup",up);	
+	}else{
+		this.MOVE=move.bind(this);
+		var _this=this;
+		this.MOVE=function(e){move.call(_this,e)}
+		this.UP=up.bind(this)
+		on(document,"mousemove",this.MOVE);
+		on(document,"mouseup",this.UP);	
+	}
+	e.preventDefault();//取消了user-select这个默认行为
+	
+	selfRun.call(this,"selfDragstart",e);//通知
+}
+function move(e){
+	this.style.left=e.pageX-this.mx+this.x+"px";
+	this.style.top=e.pageY-this.my+this.y+"px";
+	
+	selfRun.call(this,"selfDragging",e)
+}
+
+function up(e){
+	
+	if(this.releaseCapture){
+		this.releaseCapture();
+		off(this,"mousemove",move);
+		off(this,"mouseup",up);
+	}else{
+		off(document,"mousemove",this.MOVE);
+		off(document,"mouseup",this.UP);	
+	}
+	selfRun.call(this,"selfDragend",e)
+}
+
+function clearEffect(){
+	clearTimeout(this.dropTimer);
+	clearTimeout(this.flyTimer);	
+}
+
+function getSpeed(){
+	if(this.prevPosi){
+		this.speed=this.offsetLeft-this.prevPosi;
+		this.prevPosi=this.offsetLeft;
+	}else{
+		this.prevPosi=this.offsetLeft;	
+	}	
+}
+
+function fly(){
+	var val=this.offsetLeft+this.speed;
+	var r=(document.documentElement.clientWidth||document.body.clientWidth)-this.offsetWidth;
+	if(val>=r){
+		this.style.left=r+"px";
+		//this.speed*=-1;
+		this.speed=-this.speed;
+	}else if(val<0){
+		this.style.left=0;
+		this.speed*=-1;
+	}else{
+		this.style.left=val+"px";
+	}
+	this.speed*=.97;
+	
+	if(Math.abs(this.speed)>=.5){
+		this.flyTimer=window.setTimeout(processThis(this,fly),20);
+	}
+	//写动画的时候要注意：要有定时器，要有停止的条件，防止动画积累
+}
+
+//var flag=0;//标识，用来记录连续到达边界的次数
+function drop(){
+	if(this.dropSpeed){
+		this.dropSpeed+=9;
+	}else{
+		this.dropSpeed=9;
+	}
+	if(!this.flag){
+		this.flag=0;	
+	}
+	
+	var bottom=(document.documentElement.clientHeight||document.body.clientHeight)-this.offsetHeight;
+	
+	var val=this.offsetTop+this.dropSpeed;
+	if(val>=bottom){
+		this.style.top=bottom+"px";
+		this.dropSpeed*=-1;
+		this.flag++;	
+	}else{
+		this.style.top=val+"px";
+		this.flag=0;
+	}
+	this.dropSpeed*=0.97;
+	
+	if(this.flag<2)
+		this.dropTimer=window.setTimeout(processThis(this,drop),20);
+	
+}
+
+//当“拖拽开始”的时候，执行clearEffect
+//当“拖拽进行”的时候，执行getSpeed
+//当“拖拽结束”的时候，执行fly和drop
+
+//使用方式如下：
+
+
+
+
+
+</script>

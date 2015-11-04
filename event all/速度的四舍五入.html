@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+div{ width:100px; height:100px; position:absolute; top:0; left:0; background:red; overflow:hidden; cursor:move; -webkit-user-select:none;}
+</style>
+</head>
+
+<body>
+<div id="div2" style="left:100px;"></div>
+</body>
+</html>
+<script>
+window.setInterval(function(){
+	//div2.style.left=div2.offsetLeft+0.49+"px";
+	//要知道offsetLeft属性怎么算出来的
+	div2.style.left=parseFloat(div2.style.left)+0.45+"px";
+	//css属性可以是小数
+	},20);
+
+</script>

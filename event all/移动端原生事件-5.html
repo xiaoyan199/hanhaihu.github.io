@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Untitled Document</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<style type="text/css">
+#outer{ width:80%; height:260px; position:relative; overflow:hidden; margin:50px auto;   }
+#inner{ height:260px; position:relative; -webkit-transition-duration:0.6s;  }
+#inner div{ float:left; height:260px; background:red; text-align:center; line-height:260px;}
+
+
+
+</style>
+</head>
+
+<body>
+<div id="outer">
+	<div id="inner">
+    	<div >one,one,one</div>
+        <div style=" background:green;" >two,twe,twe,twe</div>
+        <div style="background-color:blue;">three,three,three</div>
+        <div style="background:purple">four</div>
+        <div style="background:black; color:#fff;">five</div>
+        <div >one,one,one</div>
+    </div>
+
+</div>
+</body>
+</html>
+<script>
+var outer=document.getElementById("outer");
+var inner=document.getElementById("inner");
+
+var w=outer.clientWidth;
+var n=inner.getElementsByTagName("div").length;
+inner.style.width=w*n+"px";
+
+var oDivs=inner.getElementsByTagName("div");
+
+//e.changedTouches[0].pageX
+for(var i=0;i<oDivs.length;i++){
+	oDivs.item(i).i=i;//把每一张的索引保存在i自定义属性上
+	oDivs.item(i).style.width=w+"px"
+	oDivs.item(i).addEventListener("touchstart",fnTouchstart,false);
+	oDivs.item(i).addEventListener("touchmove",fnTouchmove,false);
+	oDivs.item(i).addEventListener("touchend",fnTouchend,false);
+	
+	
+}
+function fnTouchstart(e){
+	inner.x=this.offsetLeft;
+	inner.startPosi={x:e.changedTouches[0].pageX}
+	this.flag=false;
+	
+}
+
+function fnTouchmove(e){
+	this.flag=true;
+	if(this.i==6){
+		this.parentNode.style.left=0;
+	}
+	var val=e.changedTouches[0].pageX;
+	val=val-this.i*w;
+	//if(val<this.parentNode.x){
+		this.parentNode.style.left=-val+"px";
+	//}
+}
+
+function fnTouchend(e){
+	if(this.flag){
+		//说明这是移动的手势	
+	}else{
+		//只是点了一下	
+	}
+	var direction=e.changedTouches[0].pageX-this.parentNode.startPosi.x;
+	if(direction>0){//向右
+		var val=-w*(this.i-1);
+	}else{
+		var val=-w*(this.i+1);
+	}
+	this.parentNode.style.left=val+"px";
+}
+
+
+</script>

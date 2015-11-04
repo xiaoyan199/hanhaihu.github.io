@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+div{ width:100px; height:100px; position:absolute; top:0; left:0; background:red; overflow:hidden; cursor:move; -webkit-user-select:none;}
+</style>
+</head>
+
+<body>
+<div id="div1"></div>
+<div id="div2" style="background:green; left:120px; "></div>
+<div id="div3" style="background:blue; left:240px; "></div>
+<div id="div4" style="background:purple; left:150px; top:110px; "><img src="img/6.png" width="100" height="100"></div>
+<div id="div5" style="background:pink; top:220px;"><img src="img/1.png" width="100" height="100"></div>
+</body>
+</html>
+<script src="event1.js"></script>
+<script>
+var oDivs=document.getElementsByTagName("div");
+for(var i=0;i<oDivs.length;i++){
+	on(oDivs.item(i),"mousedown",down);	
+}
+
+function down(e){
+
+	this.x=this.offsetLeft;
+	this.y=this.offsetTop;
+	this.mx=e.pageX;
+	this.my=e.pageY;
+	
+	if(this.setCapture){
+		this.setCapture();
+		on(this,"mousemove",move);
+		on(this,"mouseup",up);	
+	}else{
+		this.MOVE=move.bind(this);
+
+		var _this=this;
+		this.MOVE=function(e){move.call(_this,e)}
+		this.UP=up.bind(this)
+		on(document,"mousemove",this.MOVE);
+		on(document,"mouseup",this.UP);	
+	}
+	e.preventDefault();//取消了user-select这个默认行为
+}
+function move(e){
+	this.style.left=e.pageX-this.mx+this.x+"px";
+	this.style.top=e.pageY-this.my+this.y+"px";
+	//测试mousemove的响应时间
+	if(this.prevTime){//this.prevTime是指上一次鼠标事件发生的时间
+		var d=new Date;
+		console.log(d-this.prevTime);//
+		this.prevTime=d;
+		//求出了mousemove事件发生的周期大约是固定的8ms，那么在这8ms内移动的距离，可以当成速度（单位时间内产生的位移就是速度），速度是这一次的位置-上一次位置
+		//if(this.prevTime<10)
+		this.speed=this.offsetLeft-this.prevPosi;
+		this.prevPosi=this.offsetLeft;
+	}else{
+		this.prevTime=+new Date;//前面加号是为了把Date强转为
+		this.prevPosi=this.offsetLeft;
+		
+	}
+}
+
+function up(e){
+	
+	if(this.releaseCapture){
+		this.releaseCapture();
+		off(this,"mousemove",move);
+		off(this,"mouseup",up);
+	}else{
+		off(document,"mousemove",this.MOVE);
+		off(document,"mouseup",this.UP);	
+	}
+	fly.call(this);
+}
+
+//固定的时间内，取得的距离，做为速度 300ms
+//在浏览器，靠事件的性能来得到固定的时间
+
+function fly(){
+	
+	this.speed*=1;
+	var val=this.offsetLeft+this.speed;//计算出当前应该到的速度
+	var r=(document.documentElement.clientWidth||document.body.clientWidth)-this.offsetWidth;
+	if(val>=r){
+		this.style.left=r+"px";
+		this.speed*=-1;//调头	
+	}else if(val<=0){
+		this.style.left=0;
+		this.speed*=-1;	
+	}else{
+		this.style.left=val+"px";	
+	}
+	//window.setTimeout(fly.bind(this),20);
+	100+20.5;100+-20.5
+	100+.48;100+-.48
+	if(Math.abs(this.speed)>=0.5){
+		//比如说：-5和5都是有效速度，但-0.4和0.4都不是有效速度
+		//速度可以为负数，也可以为正数，正负只不过表示方向不同。
+		//正速度是向右，负速度是向左
+		window.setTimeout(processThis(this,fly),20);
+	}
+}
+</script>

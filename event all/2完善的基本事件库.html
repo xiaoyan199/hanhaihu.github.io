@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+#div1{ width:100px; height:100px; position:absolute; left:0; top:0; background:red;}
+</style>
+</head>
+
+<body>
+<div id="div1"></div>
+</body>
+</html>
+<script>
+var ele=document.getElementById("div1");
+function on(ele,type,fn){//绑定事件
+	if(ele.addEventListener){//标准浏览器的方案
+		ele.addEventListener(type,fn,false);
+		return;
+	}else{//IE的标准
+		if(!ele["aEvent"+type]){
+			ele["aEvent"+type]=[];	
+			ele.attachEvent("on"+type,function(){run.call(ele)});
+			
+		}
+		var a=ele["aEvent"+type];
+		for(var i=0;i<a.length;i++){
+			if(a[i]==fn)return;	
+		}
+		a.push(fn);
+	}
+	
+}
+
+function run(e){//通知
+	var e=window.event;
+	var a=this["aEvent"+e.type];
+	if(a){
+		if(!e.target){
+			e.target=e.srcElement;
+			e.pageX=(document.documentElement.scrollLeft||document.body.scrollLeft)+e.clientX;
+			e.pageY=(document.documentElement.scrollTop||document.body.scrollTop)+e.clientY;
+			e.preventDefault=function(){e.returnValue=false;}
+			e.stopPropation=function(){e.cancelBubble=true;}	
+			
+		}
+		for(var i=0;i<a.length;i++){
+			if(typeof a[i]=="function"){
+				a[i].call(this,e);
+			}else{
+				a.splice(i,1);
+				i--;	
+			}
+		}
+	}
+}
+
+function off(ele,type,fn){//移除绑定的事件
+	if(ele.removeEventListener){
+		ele.removeEventListener(type,fn,false);
+		return;	
+	}
+	var a=ele["aEvent"+type];
+	if(a){
+		for(var i=0;i<a.length;i++){
+			if(a[i]==fn){
+				a[i]=null;
+				return;	
+			}
+		}
+	}
+}
+function fn1(e){
+	this.innerHTML=e.pageX;
+	alert(1);
+}
+function fn2(){alert(2)}
+function fn3(){alert(3)}
+var counter=0;
+function fn4(){
+	counter++;
+	if(counter==3){
+		off(this,"click",fn2);
+		off(this,"click",fn3);
+		off(this,"click",fn4);	
+	}
+	alert(4);
+
+}
+function fn5(){alert(5)}
+function fn6(){alert(6)}
+function fn7(){alert(7)}
+function fn8(){alert(8)}
+function fn9(){alert(9)}
+function fn10(){alert(10)}
+
+on(ele,"click",fn1);
+on(ele,"click",fn2);//第二次的时候，不能再创建了，
+on(ele,"click",fn3);
+on(ele,"click",fn4);
+on(ele,"click",fn5);
+on(ele,"click",fn6);
+on(ele,"click",fn7);
+on(ele,"click",fn8);
+on(ele,"click",fn9);
+on(ele,"click",fn10);
+
+
+</script>

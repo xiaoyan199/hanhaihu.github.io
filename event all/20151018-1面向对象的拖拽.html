@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+div{ width:100px; height:100px; position:absolute; top:0; left:0; background:red; overflow:hidden; cursor:move; -webkit-user-select:none;}
+</style>
+</head>
+
+<body>
+<div id="div1"></div>
+<div id="div2" style="background:green; left:120px; "></div>
+<div id="div3" style="background:blue; left:240px; "></div>
+<div id="div4" style="background:purple; left:150px; top:110px; "><img src="img/6.png" width="100" height="100"></div>
+<div id="div5" style="background:pink; top:220px;"><img src="img/1.png" width="100" height="100"></div>
+</body>
+</html>
+<script src="event2.js"></script>
+<script>
+var oDivs=document.getElementsByTagName("div");
+/*//观念，管理，
+//面向对象和面向过程之间没有优劣之分，
+var str="abc";
+str.match;
+str.replace();
+str.attr1="abc";
+//字符串如果值类型，那为什么它还可以有方法属性
+//如果说它是对象类型，为什么给它加不上自定义属性
+//由于应用场合不同，所以按着不同的方式进行内存管理
+
+//栈内存，快内存，不能长期占用
+str+="efg";
+str.splice(3);
+//值类型方法，表如说所有的字符串方法，它们有一个特点，方法不能修改原来的实例
+
+//包装类
+	var str="abc";var str=new String("abc");
+	
+//活动对象,也是创建在栈内存（快内存）里的
+
+function Drag(ele){
+	this.ele=ele;
+}
+var obj=new Drag(div1);
+function drag(){
+	var ele="abc";	
+}
+drag.ele="";*/
+
+//在面向对象的编程里，类方法里的this要指向当前的实例
+//事件库里的原则：方法里的this都指向的是被操作的元素
+document.body.offsetParent;
+function Drag(ele){//参数ele表示的是被拖拽的DOM元素
+	//构造函数有两个作用，“类别”
+	//构造函数起“初始化”的作用：把拖拽的准备工作都要做好
+	this.ele=ele;
+	this.x=null;
+	this.y=null;
+	this.mx=null;
+	this.my=null;
+	
+	this.DOWN=processThis(this,this.down);
+	this.MOVE=processThis(this,this.move);
+	this.UP=processThis(this,this.up);
+	on(this.ele,"mousedown",this.DOWN);
+	
+}
+
+Drag.prototype.down=function(e){
+	this.x=this.ele.offsetLeft;
+	this.y=this.ele.offsetTop;
+	this.mx=e.pageX;
+	this.my=e.pageY;
+	
+	if(this.ele.setCapture){
+		this.ele.setCapture();
+		on(this.ele,"mousemove",this.MOVE);
+		on(this.ele,"mouseup",this.UP);
+	}else{
+		on(document,"mousemove",this.MOVE);
+		on(document,"mouseup",this.UP)
+	}
+		e.preventDefault();
+	
+}
+
+
+Drag.prototype.move=function(e){
+	this.ele.style.left=e.pageX-this.mx+this.x+"px";
+	this.ele.style.top=e.pageY-this.my+this.y+"px";
+}
+
+Drag.prototype.up=function(e){
+	if(this.ele.releaseCapture){
+		this.ele.releaseCapture();
+		off(this.ele,"mousemove",this.MOVE);
+		off(this.ele,"mouseup",this.UP);	
+	}else{
+		off(document,"mousemove",this.MOVE);
+		off(document,"mouseup",this.UP);	
+	}
+}
+
+for(var i=0;i<oDivs.length;i++){
+	new Drag(oDivs.item(i));	
+}
+//<图解CSS3>
+</script>

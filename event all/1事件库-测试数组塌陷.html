@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+#div1{ width:100px; height:100px; position:absolute; left:0; top:0; background:red;}
+</style>
+</head>
+
+<body>
+<div id="div1"></div>
+</body>
+</html>
+<script>
+var ele=document.getElementById("div1");
+function on(ele,type,fn){//绑定事件
+	if(ele.addEventListener){//标准浏览器的方案
+		ele.addEventListener(type,fn,false);
+		return;
+	}else{//IE的标准
+		if(!ele["aEvent"+type]){//这个判断的成立条件只有一次，所以就保证了24行只被绑定一次，不会重复绑定
+			ele["aEvent"+type]=[];//保证这个数组只被定义一次	
+			/*1、*/ele.attachEvent("on"+type,function(){run.call(ele)});
+			/*2、ele.attchEvent("on"+type,run);*/
+		}
+		var a=ele["aEvent"+type];
+		for(var i=0;i<a.length;i++){//防止方法被重复绑定
+			if(a[i]==fn)return;	
+		}
+		a.push(fn);
+		/*3、ele.attchEvent("on"+type,function(){run.call(ele)});*/
+	}
+	
+}
+
+function run(){//通知
+	var e=window.event;
+	var a=this["aEvent"+e.type];
+	if(a){
+		for(var i=0;i<a.length;i++){
+			a[i].call(this,e);//确保数组里的this是run里的this，run里的this已经在on方法处理好了：是指向ele的。所以数组里的方法的this也是指向的ele
+		}
+	}
+}
+
+function off(ele,type,fn){//移除绑定的事件
+	var a=ele["aEvent"+type];
+	if(a){
+		for(var i=0;i<a.length;i++){
+			if(a[i]==fn){
+				a.splice(i,1);	
+			}
+		}
+	}
+}
+function fn1(e){
+	//默认情况下IE不支持这样得到事件对象，是因为run方法里做了处理
+	//e=e||window.event;
+	this.innerHTML=e.pageX;
+	alert(1);
+}
+function fn2(){alert(2)}
+function fn3(){alert(3)}
+var counter=0;
+function fn4(){
+	counter++;
+	if(counter==3){
+		off(this,"click",fn2);
+		off(this,"click",fn3);
+		off(this,"click",fn4);	
+	}
+	alert(4);
+
+}
+function fn5(){alert(5)}
+function fn6(){alert(6)}
+function fn7(){alert(7)}
+function fn8(){alert(8)}
+function fn9(){alert(9)}
+function fn10(){alert(10)}
+
+on(ele,"click",fn1);//第一次执行的时候，判断有没有保存fn1的数组，如果没有则创建一个
+/*
+	3、关于off方法里的安全删除：像这样在off里用splice删除，就会出现问题。看fn4里的代码。当click事件触发第三次的时候，ele.aEventclick里的第2，3，4方法被删除，前后对比情况如下：
+	索引号 0    1     2     3     4    5    6    7     8    9    
+	删除前fn1   fn2  fn3   fn4   fn5  fn6  fn7  fn8   fn9  fn10
+	删除后fn1   fn5  fn6   fn7   fn8  fn9  fn10
+	一定要理解的是当run执行的时候执行fn4
+	当fn4方法在删除了fn2,fn3,fn4之后，run还在执行，就是执行run方法里的那个for循环。当执行到fn4的时候，for循环里的i已经是3了，再执行下一个循环i是4，这会，a[4]已经就是fn8了,所以问题就出现了：fn5,fn6,fn7没有机会执行。
+	所以，off里不能用splice来删除，而是用a[i]=null就好了。这样run方法就要改造一下了，在a[i]执行之前，要做一个判断：typeof a[i]=="function",如果这个条件成立，则运行；不成立，则把这个空项删除。
+	run方法里的代码改成这样：
+	if(typeof a[i]=="function"){
+		a[i].call(this,e);
+	}else{
+		a.splice(i,1);
+		i--;
+	}
+
+*/
+on(ele,"click",fn2);//第二次的时候，不能再创建了，
+on(ele,"click",fn3);
+on(ele,"click",fn4);
+on(ele,"click",fn5);
+on(ele,"click",fn6);
+on(ele,"click",fn7);
+on(ele,"click",fn8);
+on(ele,"click",fn9);
+on(ele,"click",fn10);
+
+
+</script>

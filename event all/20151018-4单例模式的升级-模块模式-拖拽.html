@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+div{ width:100px; height:100px; position:absolute; top:0; left:0; background:red; overflow:hidden; cursor:move; -webkit-user-select:none;}
+</style>
+</head>
+
+<body>
+<div id="div1"></div>
+<div id="div2" style="background:green; left:120px; "></div>
+<div id="div3" style="background:blue; left:240px; "></div>
+<div id="div4" style="background:purple; left:150px; top:110px; "><img src="img/6.png" width="100" height="100"></div>
+<div id="div5" style="background:pink; top:220px;"><img src="img/1.png" width="100" height="100"></div>
+</body>
+</html>
+<script src="event2.js"></script>
+<script>
+var oDivs=document.getElementsByTagName("div");
+//写拖拽的时候大量的使用自定义属性
+//ele.x,ele.y
+//var obj=new Drag;
+//obj.x,obj.y;
+//modules model 模块模式 DOM AJAX
+
+//模块模式其实也是以单例模式来表现的
+//是把面向过程的这些函数给模块化
+//参考requireJS的规范和使用：阮一峰网站上
+;var modules=(function(){
+	var x=null,y=null,mx=null,my=null;
+	
+	function down(e){
+		x=this.offsetLeft;
+		y=this.offsetTop;
+		mx=e.pageX;
+		my=e.pageY;
+		if(this.setCapture){
+			this.setCapture();
+			on(this,"mousemove",move);
+			on(this,"mouseup",up);
+		}else{
+			this.MOVE=move.bind(this);
+			this.UP=up.bind(this);
+			on(document,"mousemove",this.MOVE)
+			on(document,"mouseup",this.UP);
+		}
+			e.preventDefault();
+	}
+	
+	function move(e){
+		this.style.left=e.pageX-mx+x+"px";
+		this.style.top=e.pageY-my+y+"px";
+	}
+	function up(e){
+		if(this.releaseCapture){
+			this.releaseCapture();
+			off(this,"mousemove",move);
+			off(this,"mouseup",up);
+		}else{
+			off(document,"mousemove",this.MOVE);
+			off(document,"mouseup",this.UP);
+		}
+	}
+	//on(oDivs.item(1),"mousedown",down);
+	function init(ele){
+		on(ele,"mousedown",down);
+		}
+		
+		var obj={fn1:init,fn2:move,fn3:down};
+		obj.fn1=init;
+		return obj;
+	
+})()
+modules.fn1(oDivs[0]);
+/*//module,modle,pattern
+//attribute,property
+
+modules.exports.down=down;
+modules.exports.move=move;
+/////////////////////
+var drag=require("drag");
+drag.down();
+drag.move()
+var fs=require("fs");//requireJS
+*/
+</script>

@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+div{ width:100px; height:100px; position:absolute; top:0; left:0; background:red; overflow:hidden; cursor:move; -webkit-user-select:none;}
+</style>
+</head>
+
+<body>
+<div id="div1"></div>
+<div id="div2" style="background:green; left:120px; "></div>
+<div id="div3" style="background:blue; left:240px; "></div>
+<div id="div4" style="background:purple; left:150px; top:110px; "><img src="img/6.png" width="100" height="100"></div>
+<div id="div5" style="background:pink; top:220px;"><img src="img/1.png" width="100" height="100"></div>
+</body>
+</html>
+<script src="event2.js"></script>
+<script>
+var oDivs=document.getElementsByTagName("div");
+
+//第一部分（其实是第二步写的）：订阅发布模式模块
+function EventEmitter(){}
+EventEmitter.prototype.on=function(type,fn){//订阅
+	if(!this["event"+type]){
+		this["event"+type]=[];	
+	}
+	var a=this["event"+type];
+	for(var i=0;i<a.length;i++){
+		if(a[i]==fn)return this;
+	}
+	a.push(fn);
+	return this;
+}
+EventEmitter.prototype.run=function(type,e){//发布，通知
+	var a=this["event"+type];
+	if(a){
+		for(var i=0;i<a.length;i++){
+			if(typeof a[i]=="function"){
+				a[i].call(this,e);
+			}else{
+				a.splice(i,1);
+				i--;
+			}
+		}
+	}
+}
+
+EventEmitter.prototype.off=function(type,e){//移除已经订阅的
+	var a=this["event"+type];
+	if(a){
+		for(var i=0;i<a.length;i++){
+			if(a[i]==fn){
+				a[i]=null;
+				return;	
+			}
+		}
+	}
+}
+
+//第二部分：拖拽模块（先完成的）
+//在面向对象的编程里，类方法里的this要指向当前的实例
+//事件库里的原则：方法里的this都指向的是被操作的元素
+function Drag(ele){//参数ele表示的是被拖拽的DOM元素
+	this.ele=ele;
+	this.x=null;
+	this.y=null;
+	this.mx=null;
+	this.my=null;
+	
+	this.DOWN=processThis(this,this.down);
+	this.MOVE=processThis(this,this.move);
+	this.UP=processThis(this,this.up);
+	on(this.ele,"mousedown",this.DOWN);
+	
+}
+
+//把事件发射器和拖拽结合在一起，是第三步，这一步是先做原型继承，然后再发布事件：就是每个方法里的this.run执行
+Drag.prototype=new EventEmitter;//原型继承;继承一定要在定义原型方法之前实现
+/*Drag.prototype={//当然也不要用这样的方式在继承之后定义原型方法
+	down:function(){},
+	move:function(){},
+	up:function(){}
+	
+}*/
+Drag.prototype.down=function(e){
+	this.x=this.ele.offsetLeft;
+	this.y=this.ele.offsetTop;
+	this.mx=e.pageX;
+	this.my=e.pageY;
+	
+	if(this.ele.setCapture){
+		this.ele.setCapture();
+		on(this.ele,"mousemove",this.MOVE);
+		on(this.ele,"mouseup",this.UP);
+	}else{
+		on(document,"mousemove",this.MOVE);
+		on(document,"mouseup",this.UP)
+	}
+		e.preventDefault();
+		//run.call(this,"",e);
+		this.run("dragstart",e);//这里的事件类型可不加self前缀
+}
+this.__proto__.__proto__;//this上的run方法，是这样找到的
+
+Drag.prototype.move=function(e){
+	this.ele.style.left=e.pageX-this.mx+this.x+"px";
+	this.ele.style.top=e.pageY-this.my+this.y+"px";
+	this.run("drag",e);//标识当前这个“拖拽正在进行”的行为的字符串，叫“事件类型”，这里的事件类型是自己发布的
+}
+
+Drag.prototype.up=function(e){
+	if(this.ele.releaseCapture){
+		this.ele.releaseCapture();
+		off(this.ele,"mousemove",this.MOVE);
+		off(this.ele,"mouseup",this.UP);	
+	}else{
+		off(document,"mousemove",this.MOVE);
+		off(document,"mouseup",this.UP);	
+	}
+	this.run("dragend",e);
+}
+//Drag.prototype=new EventEmitter;//原型继承;继承一定要在定义原型方法之前实现
+for(var i=0;i<oDivs.length;i++){
+	//事件绑定是第四步
+	new Drag(oDivs.item(i)).on("dragstart",clearEffect).on("drag",getSpeed).on("dragend",fly).on("dragend",drop);	
+	
+	//上边是比较装的写法，用来吓人。下面是通俗的写法
+/*	var obj=new Drag(oDivs.item(i));
+	obj.on("dragstart",clearEffect);
+	//obj.addEventListener(type,fn);
+	obj.on("drag",getSpeed);
+	obj.on("dragend",fly);
+	obj.on("dragend",drop);*/
+}
+//<图解CSS3>
+
+//原来的方法this都是指的被拖拽的元素，现在this是类上的实例。现在this.ele相当于原来的this。现在做改动，把所有的对元素的操作，都改成this.ele
+function clearEffect(){
+	clearTimeout(this.dropTimer);
+	clearTimeout(this.flyTimer);	
+}
+
+function getSpeed(){
+	if(this.prevPosi){
+		this.speed=this.ele.offsetLeft-this.prevPosi;
+		this.prevPosi=this.ele.offsetLeft;
+	}else{
+		this.prevPosi=this.ele.offsetLeft;	
+	}	
+}
+
+function fly(){
+	var val=this.ele.offsetLeft+this.speed;
+	var r=(document.documentElement.clientWidth||document.body.clientWidth)-this.ele.offsetWidth;
+	if(val>=r){
+		this.ele.style.left=r+"px";
+		//this.speed*=-1;
+		this.speed=-this.speed;
+	}else if(val<0){
+		this.ele.style.left=0;
+		this.speed*=-1;
+	}else{
+		this.ele.style.left=val+"px";
+	}
+	this.speed*=.97;
+	
+	if(Math.abs(this.speed)>=.5){
+		this.flyTimer=window.setTimeout(processThis(this,fly),20);
+	}
+	//写动画的时候要注意：要有定时器，要有停止的条件，防止动画积累
+}
+
+//var flag=0;//标识，用来记录连续到达边界的次数
+function drop(){
+	if(this.dropSpeed){
+		this.dropSpeed+=9;
+	}else{
+		this.dropSpeed=9;
+	}
+	if(!this.flag){
+		this.flag=0;	
+	}
+	
+	var bottom=(document.documentElement.clientHeight||document.body.clientHeight)-this.ele.offsetHeight;
+	
+	var val=this.ele.offsetTop+this.dropSpeed;
+	if(val>=bottom){
+		this.ele.style.top=bottom+"px";
+		this.dropSpeed*=-1;
+		this.flag++;	
+	}else{
+		this.ele.style.top=val+"px";
+		this.flag=0;
+	}
+	this.dropSpeed*=0.97;
+	
+	if(this.flag<2)
+		this.dropTimer=window.setTimeout(processThis(this,drop),20);
+	
+}
+</script>

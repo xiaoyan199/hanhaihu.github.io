@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+#div1{ width:100px; height:100px; position:absolute; left:0; top:0; background:red;}
+</style>
+</head>
+
+<body>
+<div id="div1"></div>
+</body>
+</html>
+<script>
+var ele=document.getElementById("div1");
+function on(ele,type,fn){//绑定事件
+	if(ele.addEventListener){//标准浏览器的方案
+		ele.addEventListener(type,fn,false);
+		return;
+	}else{//IE的标准
+		if(!ele["aEvent"+type]){//这个判断的成立条件只有一次，所以就保证了24行只被绑定一次，不会重复绑定
+			ele["aEvent"+type]=[];//保证这个数组只被定义一次	
+			/*1、*/ele.attchEvent("on"+type,function(){run.call(ele)});
+			/*2、ele.attchEvent("on"+type,run);*/
+		}
+		var a=ele["aEvent"+type];
+		for(var i=0;i<a.length;i++){//防止方法被重复绑定
+			if(a[i]==fn)return;	
+		}
+		a.push(fn);
+		/*3、ele.attchEvent("on"+type,function(){run.call(ele)});*/
+	}
+	
+}
+
+function run(){//通知
+	var e=window.event;
+	var a=this["aEvent"+e.type];
+	if(a){
+		for(var i=0;i<a.length;i++){
+			a[i].call(this,e);//确保数组里的this是run里的this，run里的this已经在on方法处理好了：是指向ele的。所以数组里的方法的this也是指向的ele
+		}
+	}
+}
+
+function off(ele,type,fn){//移除绑定的事件
+	var a=ele["aEvent"+type];
+	if(a){
+		for(var i=0;i<a.length;i++){
+			if(a[i]==fn){
+				a.splice(i,1);	
+			}
+		}
+	}
+}
+function fn1(e){
+	//默认情况下IE不支持这样得到事件对象，是因为run方法里做了处理
+	//e=e||window.event;
+	this.innerHTML=e.pageX;
+}
+
+on(ele,"click",fn1);//第一次执行的时候，判断有没有保存fn1的数组，如果没有则创建一个
+/*
+//fn1最终的执行经过了那些步骤
+	1、当on执行的时候，fn1被保存在ele上的一个叫ele.aEventclick的数组里了，当然这个ele.aEventclick是第一次被创建，并且它是一个自定义属性。在创建这个数组的同时，还把变形之后run方法绑定给了ele的click事件。
+	2、当click事件触发的时候，run运行了，run方法里遍历已经存在的ele.aEventcick数组，当遍历数组要让数组里的方法运行，并且让这些方法在运行this指向ele,既a[i].call(this,e)这句代码。后边的第二个参数e是为让IE678和标准浏览器得到事件对象的方式一样，这儿已经以参数方式把事件对象传给了方法，那在fn1里就不会写e=e||window.event这一句了。这一句是解决其它事件兼容性问题的关键
+	3、负责移除绑定：就是把原来存在于ele.aEventclick数组中的方法，用安全的方法删除。
+
+*/
+on(ele,"click",fn2);//第二次的时候，不能再创建了，
+on(ele,"click",fn3);
+</script>

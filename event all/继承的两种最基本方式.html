@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+</head>
+
+<body>
+</body>
+</html>
+<script>
+function Person(name,weight,height,gender){
+	this.name=name;
+	this.weight=weight;
+	this.height=height;
+	this.gender=gender;
+	//省略其它代码若干
+}
+Person.prototype.step=function(){};
+Person.prototype.cry=function(){}
+Person.prototype.eat=function(){};
+
+
+function FE(name,weight,height,gender){ //front end
+	Person.apply(this,arguments);//借用构造函数继承
+	//Person(name,weight,height,gender)
+	//以下是属于FE自己的初始化代码
+}
+FE.prototype=new Person;
+FE.prototype.__proto__=Person.prototype;//不兼容IE，这种更安全
+FE.prototype.writeCSS=function(){
+	
+}
+FE.prototype.writeJS=function(){}
+</script>

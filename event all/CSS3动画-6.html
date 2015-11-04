@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style type="text/css">
+div{ width:100px; height:100px; background:blue; float:left; margin:10px; transition-duration:1s; -webkit-transition-duration:1s;  }
+div:hover{ transform:translate(200px,200px); -webkit-transform:translate(200px,200px)}
+.myclick{ transform:translate(200px,200px); -webkit-transform:translate(200px,200px)}
+</style>
+</head>
+
+<body>
+<div id="div1"></div>
+<div id="div2"></div>
+<div id="div3"></div>
+</body>
+</html>
+<script>
+var divs=document.getElementsByTagName("div");
+divs.item(1).onclick=function(){
+	this.style.height=300+"px";
+	}
+</script>
+

@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Untitled Document</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<style type="text/css">
+#outer{ width:80%; height:260px; position:relative; overflow:hidden; margin:50px auto;   }
+#inner{ height:260px;  }
+#inner div{ float:left; height:260px; background:red; text-align:center; line-height:260px;}
+
+</style>
+</head>
+
+<body>
+<div id="outer">
+	<div id="inner">
+    	<div >one,one,one</div>
+        <div style=" background:green;" >two,twe,twe,twe</div>
+        <div style="background-color:blue;">three,three,three</div>
+        <div style="background:purple">four</div>
+        <div style="background:black; color:#fff;">five</div>
+    </div>
+
+</div>
+</body>
+</html>
+<script>
+var outer=document.getElementById("outer");
+var inner=document.getElementById("inner")
+var w=outer.clientWidth;
+var n=inner.getElementsByTagName("div").length;
+inner.style.width=w*n+"px";
+
+var oDivs=inner.getElementsByTagName("div");
+for(var i=0;i<oDivs.length;i++){
+	oDivs.item(i).i=i;
+	oDivs.item(i).style.width=w+"px"
+	oDivs.item(i).addEventListener("touchstart",fnTouchstart,false);
+}
+function fnTouchstart(e){
+	inner.startPosi={x:e.changedTouches[0].pageX,y:e.changedTouches[0].pageY}
+	this.addEventListener("touchmove",fnTouchmove,false);
+	this.addEventListener("touchend",fnTouchend,false);
+}
+
+function fnTouchmove(e){
+	var movex=e.changedTouches[0].pageX-inner.startPosi.x;
+	this.parentNode.direction=movex>0?1:-1;
+	//var movey=e.changedTouches[0].pageY;
+	var val=movex-w*this.i+"px";
+	this.parentNode.style.webkitTransform="translate3d("+val+",0,0)";
+	this.parentNode.style.webkitTransition="all .6s ease-out";
+	
+}
+
+function fnTouchend(e){
+	if(this.parentNode.direction>0){
+		var val=-w*(this.i-1);
+	}else{
+		var val=-w*(this.i+1);
+	}
+	inner.startPosi.x=val;
+	this.parentNode.style.webkitTransform="translate3d("+val+"px,0,0)";
+	this.parentNode.style.webkitTransition="all .6s ease-out";
+}
+
+
+</script>
